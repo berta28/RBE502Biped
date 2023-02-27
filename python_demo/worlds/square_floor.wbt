@@ -1,0 +1,20 @@
+#VRML_SIM R2023a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/objects/floors/protos/RectangleArena.proto"
+IMPORTABLE EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/robots/fujitsu/hoap2/protos/Hoap2.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/robots/robotis/darwin-op/protos/RobotisOp2.proto"
+
+WorldInfo {
+}
+Viewpoint {
+  orientation 0.15963738067168193 0.03078235792876665 -0.986695674021443 2.7655134344468486
+  position 2.7890117303489297 0.6933999482730835 0.7113576623767593
+}
+TexturedBackground {
+}
+RectangleArena {
+}
+RobotisOp2 {
+  controller "python3_demo_controller"
+}
