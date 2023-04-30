@@ -20,7 +20,7 @@ def main():
     plt.ylabel('Torque N*cm')
     plt.ylim([-80,80])
     plt.legend()
-    plt.show()
+    # plt.show()
     plt.savefig('vg_controller_demo/results/torques.png')
 
 
@@ -34,7 +34,7 @@ def main():
     plt.ylabel('Position [mm]')
     plt.ylim([-3,222])
     plt.legend()
-    plt.show()
+    # plt.show()000000000000
     plt.savefig('vg_controller_demo/results/position.png')
 
     plt.figure('XY_error')
@@ -47,7 +47,7 @@ def main():
     plt.ylabel('Position [mm]')
     plt.ylim([-2.5,1.5])
     plt.legend()
-    plt.show()
+    # plt.show()
     plt.savefig('vg_controller_demo/results/position_error.png')
 
 
