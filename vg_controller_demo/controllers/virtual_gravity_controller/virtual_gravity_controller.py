@@ -78,10 +78,11 @@ robotNode=robot.getFromDef("OP2")
 # OPEN CSV FILE
 current_GMT = time.gmtime()
 ts = calendar.timegm(current_GMT)# GET CURRENT TIMESTAMP
-filename=f'C:\\Users\\tim5v\\OneDrive - Worcester Polytechnic Institute (wpi.edu)\\Documents\\WPI\\Spring 2023\\Robot Control\\Final Project\\results\sim_results_{ts}.csv'
+# filename=f'vg_controller_demo/results/sim_results_{ts}.csv'
+filename=f'C:\\Users\\smber\\OneDrive\\Documents\\GitHub\\RBE502Biped\\vg_controller_demo\\results\\sim_results_{ts}.csv'
 with open(filename,'w') as csvfile:
     writer=csv.writer(csvfile)
-    fields=['t [s]','uRight_1 [N*cm]','uRight_2 [N*cm]','uLeft_1 [N*cm]','uLeft_2 [N*cm]','x_CoM [mm]','y_CoM [mm]','F_dist [N]']
+    fields=['t [s]','uRight_1 [N*cm]','uRight_2 [N*cm]','uLeft_1 [N*cm]','uLeft_2 [N*cm]','x_CoM [mm]','z_CoM [mm]','F_dist [N]']
     writer.writerow(fields)
         
     # RUN SIMULATION

@@ -1,0 +1,182 @@
+function q = ikSolver(Tsd,S,M,q)
+numJoints = length(q);
+Tsb = double(fkine(S,M(:,:,numJoints),q));
+i=0;
+previous = 100;
+Tsd = double(Tsd);
+while double(norm(Tsd(1:3,4) - Tsb(1:3,4))) > .001 && i<50
+    l = double(norm(Tsd(1:3,4) - Tsb(1:3,4)))
+%     Tsb = double(fkine(S,M(:,:,numJoints),q));
+    Tbd = double(Tsb^-1 * Tsd);
+    
+    Vb = logtwist(Tbd);
+    
+    Js = double(jacob0(S,q));
+    
+    Jb = adjoint(Js,Tsb^-1);
+
+    deltaQ = pinv(Jb)*Vb;
+    q = q + deltaQ;
+    i = i + 1;
+    g = double(Tsb(1:3,3:4)) 
+    l = double(norm(Tsd(1:3,4) - Tsb(1:3,4)))
+    if  norm(Tsd(1:3,4) - Tsb(1:3,4)) == previous
+        q = rand(1,numJoints);
+        fprintf('update q to %f',q)
+
+    if mod(i,2)==0
+        previous2 = norm(Tsd(1:3,3:4) - Tsb(1:3,3:4));
+        
+    else
+        previous1 = norm(Tsd(1:3,3:4) - Tsb(1:3,3:4));
+    end
+    end
+    previous = norm(Tsd(1:3,3:4) - Tsb(1:3,3:4));
+    Tsb = double(fkine(S,M(:,:,numJoints),q));
+%     q =[rand(1,6)]'
+
+%     for idx = 1:6
+%     T(:,:,idx) = double(fkine(S(:,1:idx),M(:,:,idx),q(1:idx)));
+%     display(T(:,:,idx));
+%     plotFrame(T(:,:,idx),50, 3);
+%     end
+end
+i
+end
+
+
+function J = jacob0(S,q)
+%Write a function `jacob0' to calculate the Jacobian matrix for a robotic arm. The Jacobian must 
+%be calculated in the space frame. The function takes as input a matrix S containing all the screw 
+%axes (arranged by column) and a vector of joint variables q. The function should be able to 
+%calculate the Jacobian for kinematic chains with any number `n' of joints.
+%(Hint: Consider creating a dictionary or list of Transformation matrices which can then help you 
+%find the Jacobians)
+
+%Js = [ws; vs]
+
+%Vs = Js0 *0dot
+
+%Vs = [Js1 Js2 ...]
+
+%Vs = [V1 V2 V3 ....]
+
+%Adj = e^s101 [s2] e^-s101
+T=eye(4);
+
+%loop each row of S and multiple the twist axis transformation for each axis of value theta
+%Js1 = I* S1
+%Js2 = T01 * S2
+%Js3 = T02 * S3 
+%Js4 = .......
+n = length(q);
+
+for i = 1: n
+   J(:,i) = adjoint(S(:,i),T)';
+   Tn = twist2ht(S(:,i),q(i));
+   T = T * Tn;
+end
+
+
+end
+
+
+function Vtrans = adjoint(V,T)
+%Given a twist 𝒱  expressed with respect to some arbitrary reference frame, calculate its 
+%representation in a new frame, whose position and orientation is described by a homogeneous 
+%transformation matrix T
+% Va = AdjTab * Vb
+
+R = T(1:3,1:3);
+p = T(1:3,4);
+%T = [ R   P
+%      0   1]
+
+% AdjT = [    R      O3x3
+%           [P]R       R ]
+AdjT = [ R , zeros(3,3);
+        skew(p')*R, R;];
+% AdjT(1:3,1:3) = R;
+% AdjT(4:6,1:3) = skew(p')*R;
+% AdjT(1:3,4:6) = zeros(3);
+% AdjT(4:6,4:6) = R;
+
+Vtrans = AdjT * V;
+
+
+end
+
+
+function T = twist2ht(S,theta)
+% Given a twist V=Sθ , where S∈R^6 is a Screw Axis and θ is a scalar, function that calculates the corresponding homogeneous transformation matrix T∈SE(3).
+% Note: S = [w;v]
+%T = e^[S]0
+%initalize T
+T = eye(4);
+
+%Seperate w and v from s
+w = S(1:3);
+v = S(4:6);
+
+if norm(w) < eps(10)
+    T = [eye(3) v*theta;
+        0 0 0 1];
+elseif norm(w) - 1 < eps(10)
+%Create the Transformation matrix of the twist axis 
+R = axisangle2rot(w,theta);
+%T(1:3,1:3) = R;
+trans = (eye(3)*theta + (1-cos(theta))*skew(w') + (theta-sin(theta))*skew(w')^2)*v;
+%T(1:3,4) = trans;
+T = [ R trans; 0 0 0 1];
+end
+end
+
+function matrix = skew(w)
+%% creates a skew matrix  of 1x3 angular velocity w
+matrix = [
+    [0 -w(3) w(2)];
+    [w(3) 0 -w(1)];
+    [-w(2) w(1) 0]];
+end
+
+
+function R = axisangle2rot(omega,theta)
+% Given the exponential coordinates of rotation ω ̂θ, where θ is a scalar and ω∈R^3, with ‖ω‖=1, calculate the corresponding rotation matrix R∈SO(3).
+%Rodriquez's formula for screw axis
+R = eye(3) + sin(theta)*skew(omega) + (1-cos(theta))*skew(omega)^2;
+end
+
+function Vb = logtwist(Tbd)
+R = Tbd(1:3,1:3);
+p = Tbd(1:3,4);
+
+if trace(R) == 3
+    w = [0;0;0];
+    p_mag = norm(p);
+    v = p/p_mag;
+    theta = p_mag;
+    
+elseif (trace(R) == -1)
+    theta = pi;
+     w1 = 1/sqrt(2*(1+R(3,3)))*[R(1,3); R(2,3); 1+R(3,3);];
+     w2 = 1/sqrt(2*(1+R(2,2)))*[R(1,2); 1+R(2,2); R(3,2);];
+     w3 = 1/sqrt(2*(1+R(1,1)))*[1+R(1,1); R(2,1); R(3,1);];
+     if ~isnan(w1)
+         w= w1;
+     elseif ~isnan(w2)
+         w= w2;
+     elseif ~isnan(w3)
+         w= w3;
+     end
+    
+else
+theta = acos(1/2*(trace(R)-1));
+skew_ww= 1/(2*sin(theta))*(R-R');
+w = [skew_ww(3,2) skew_ww(1,3) skew_ww(2,1)]';
+end
+
+G_inv = 1/theta * eye(3) - 1/2*skew(w)+(1/theta - 1/2*cot(theta/2))*skew(w)^2;
+v = G_inv*p;
+Vb = theta*[w; v;];
+end
+
